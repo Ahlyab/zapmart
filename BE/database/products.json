@@ -1,0 +1,15 @@
+[
+  {
+    "id": "1754143190783",
+    "name": "shoes",
+    "description": "Nike ",
+    "price": 50,
+    "categoryId": "2",
+    "weight": 2,
+    "dimensions": "20x10x30",
+    "imageUrl": "https://images.pexels.com/photos/230544/pexels-photo-230544.jpeg",
+    "sellerId": "1754142969149",
+    "isActive": true,
+    "createdAt": "2025-08-02T13:59:50.783Z"
+  }
+]

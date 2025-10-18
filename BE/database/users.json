@@ -1,0 +1,34 @@
+[
+  {
+    "id": "1754142555950",
+    "email": "admin@ecommerce.com",
+    "password": "$2a$10$6ntabOotkMPAeDBRFgMYe.OAq/XjpX0ybz/IlwN5ZaO/DpfHPDjCy",
+    "name": "Admin User",
+    "role": "admin",
+    "isApproved": true,
+    "isBanned": false,
+    "createdAt": "2025-08-02T13:49:16.130Z"
+  },
+  {
+    "id": "1754142642057",
+    "email": "hhhhjdi@gmail.com",
+    "password": "$2a$10$82iptrUPVL9KGIyUlhWxXOHxJUnkLtHEJzyzsZjdZK4RwRBonp2tS",
+    "name": "ali",
+    "role": "customer",
+    "isApproved": true,
+    "isBanned": false,
+    "createdAt": "2025-08-02T13:50:42.057Z",
+    "country": "United Kingdom",
+    "updatedAt": "2025-08-23T14:02:13.413Z"
+  },
+  {
+    "id": "1754142969149",
+    "email": "tahir@gmail.com",
+    "password": "$2a$10$5fCp4LMiCkaN1D3P3W1DjOPx7mw2xN/xHfAMq4f6tG6yp3fxDESdu",
+    "name": "Tahir Ali",
+    "role": "seller",
+    "isApproved": true,
+    "isBanned": false,
+    "createdAt": "2025-08-02T13:56:09.149Z"
+  }
+]
