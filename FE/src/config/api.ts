@@ -25,6 +25,7 @@ export const API_ENDPOINTS = {
   
   // Seller
   SELLER_PRODUCTS: `${API_BASE_URL}/api/seller/products`,
+  SELLER_ORDER_STATUS_UPDATE: `${API_BASE_URL}/api/orders/seller/orders`,
   
   // Reviews
   REVIEWS: `${API_BASE_URL}/api/reviews`,

@@ -4,7 +4,6 @@ import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../contexts/CartContext";
 import {
   ShoppingCart,
-  User,
   Menu,
   X,
   Store,
@@ -20,7 +19,7 @@ import {
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
-  const { getItemCount, debugCart } = useCart();
+  const { getItemCount } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -39,6 +38,14 @@ const Navbar: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    setIsMenuOpen(false);
+  }, [user]);
+
+  useEffect(() => {
+    setIsUserDropdownOpen(false);
+  }, [user]);
+
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         userDropdownRef.current &&
@@ -54,8 +61,8 @@ const Navbar: React.FC = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/");
     setIsMenuOpen(false);
+    navigate("/");
   };
 
   const getDashboardPath = () => {

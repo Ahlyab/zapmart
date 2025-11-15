@@ -7,6 +7,7 @@ import axios from "axios";
 import { API_ENDPOINTS } from "../config/api";
 import ReviewForm from "../components/ReviewForm";
 import ReviewList from "../components/ReviewList";
+import { scrollToTop } from "../utils/helper";
 
 interface Product {
   id: string;
@@ -81,6 +82,10 @@ const ProductDetailPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    scrollToTop();
+  }, []);
 
   useEffect(() => {
     if (id) {
