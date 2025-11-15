@@ -30,6 +30,8 @@ const CheckoutPage: React.FC = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const [trackingNumber, setTrackingNumber] = useState<string | null>(null);
+  const [guestToken, setGuestToken] = useState<string | null>(null);
+  const [isCreatingGuestAccount, setIsCreatingGuestAccount] = useState(false);
 
   const deliveryCharge = 10;
   const subtotal = getTotalPrice();
@@ -55,7 +57,63 @@ const CheckoutPage: React.FC = () => {
       ...guestInfo,
       [e.target.name]: e.target.value,
     });
+    // Reset guest token when guest info changes
+    setGuestToken(null);
   };
+
+  // Create guest account when guest info is filled (before payment)
+  const createGuestAccount = async () => {
+    if (!guestInfo.fullName || !guestInfo.email || !guestInfo.phone) {
+      return null;
+    }
+
+    try {
+      setIsCreatingGuestAccount(true);
+      const response = await fetch(API_ENDPOINTS.GUEST_AUTH, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          guestInfo: {
+            fullName: guestInfo.fullName,
+            email: guestInfo.email,
+            phone: guestInfo.phone,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create guest account");
+      }
+
+      const data = await response.json();
+      setGuestToken(data.token);
+      return data.token;
+    } catch (error) {
+      console.error("Error creating guest account:", error);
+      setPaymentError("Failed to create guest account. Please try again.");
+      setPaymentStatus("error");
+      return null;
+    } finally {
+      setIsCreatingGuestAccount(false);
+    }
+  };
+
+  // Effect to create guest account when guest info is complete
+  useEffect(() => {
+    if (
+      !user &&
+      guestInfo.fullName &&
+      guestInfo.email &&
+      guestInfo.phone &&
+      !guestToken &&
+      !isCreatingGuestAccount
+    ) {
+      createGuestAccount();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [guestInfo.fullName, guestInfo.email, guestInfo.phone, user, guestToken]);
 
   const handlePaymentSuccess = async (paymentIntentId: string) => {
     try {
@@ -73,13 +131,14 @@ const CheckoutPage: React.FC = () => {
         country: shippingAddress.country,
       };
 
-      // Use guest checkout endpoint if user is not logged in
+      // Use guest checkout endpoint (unprotected) if user is not logged in
+      // GUEST_ORDERS endpoint does not require authentication
       const endpoint = user ? API_ENDPOINTS.ORDERS : API_ENDPOINTS.GUEST_ORDERS;
       const headers: HeadersInit = {
         "Content-Type": "application/json",
       };
 
-      // Add auth token only if user is logged in
+      // Add auth token only if user is logged in (not needed for guest checkout)
       if (user) {
         headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
       }
@@ -464,6 +523,12 @@ const CheckoutPage: React.FC = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
+                    {!user && isCreatingGuestAccount && (
+                      <div className="text-center py-4">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                        <p className="text-sm text-gray-600">Setting up guest account...</p>
+                      </div>
+                    )}
                     <StripeCheckout
                       amount={total}
                       onSuccess={handlePaymentSuccess}
@@ -474,8 +539,11 @@ const CheckoutPage: React.FC = () => {
                         (!user &&
                           (!guestInfo.fullName ||
                             !guestInfo.email ||
-                            !guestInfo.phone))
+                            !guestInfo.phone ||
+                            !guestToken ||
+                            isCreatingGuestAccount))
                       }
+                      guestToken={!user ? guestToken : null}
                     />
                   </div>
                 )}

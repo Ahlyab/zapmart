@@ -18,6 +18,7 @@ interface StripeCheckoutProps {
   onSuccess: (paymentIntentId: string) => void;
   onError: (error: string) => void;
   disabled?: boolean;
+  guestToken?: string | null;
 }
 
 const CheckoutForm: React.FC<StripeCheckoutProps> = ({
@@ -25,6 +26,7 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
   onSuccess,
   onError,
   disabled,
+  guestToken,
 }) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -42,12 +44,19 @@ const CheckoutForm: React.FC<StripeCheckoutProps> = ({
     setError(null);
 
     try {
+      // Use guest token if provided, otherwise use regular token from localStorage
+      const token = guestToken || localStorage.getItem("token");
+      
+      if (!token) {
+        throw new Error("Authentication token is required");
+      }
+
       // Create payment intent
       const response = await fetch(API_ENDPOINTS.CREATE_PAYMENT_INTENT, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           amount,
