@@ -14,6 +14,8 @@ export const API_ENDPOINTS = {
   
   // Orders
   ORDERS: `${API_BASE_URL}/api/orders`,
+  GUEST_ORDERS: `${API_BASE_URL}/api/orders/guest`,
+  TRACK_ORDER: `${API_BASE_URL}/api/orders/track`,
   SELLER_ORDERS: `${API_BASE_URL}/api/orders/seller/orders`,
   CREATE_PAYMENT_INTENT: `${API_BASE_URL}/api/create-payment-intent`,
   

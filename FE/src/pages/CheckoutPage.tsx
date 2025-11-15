@@ -18,12 +18,18 @@ const CheckoutPage: React.FC = () => {
     city: "",
     country: "United Kingdom",
   });
+  const [guestInfo, setGuestInfo] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+  });
   const [paymentStatus, setPaymentStatus] = useState<
     "pending" | "success" | "error"
   >("pending");
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [countdown, setCountdown] = useState(3);
+  const [trackingNumber, setTrackingNumber] = useState<string | null>(null);
 
   const deliveryCharge = 10;
   const subtotal = getTotalPrice();
@@ -44,6 +50,13 @@ const CheckoutPage: React.FC = () => {
     });
   };
 
+  const handleGuestInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setGuestInfo({
+      ...guestInfo,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   const handlePaymentSuccess = async (paymentIntentId: string) => {
     try {
       // Transform cart items to match Order model schema
@@ -60,29 +73,54 @@ const CheckoutPage: React.FC = () => {
         country: shippingAddress.country,
       };
 
+      // Use guest checkout endpoint if user is not logged in
+      const endpoint = user ? API_ENDPOINTS.ORDERS : API_ENDPOINTS.GUEST_ORDERS;
+      const headers: HeadersInit = {
+        "Content-Type": "application/json",
+      };
+
+      // Add auth token only if user is logged in
+      if (user) {
+        headers.Authorization = `Bearer ${localStorage.getItem("token")}`;
+      }
+
+      const requestBody: any = {
+        items: orderItems,
+        shippingAddress: orderShippingAddress,
+        total,
+        paymentIntentId,
+      };
+
+      // Add guest info if not logged in
+      if (!user) {
+        requestBody.guestInfo = {
+          fullName: guestInfo.fullName,
+          email: guestInfo.email,
+          phone: guestInfo.phone,
+        };
+      }
+
       // Create order with payment intent ID
-      const response = await fetch(API_ENDPOINTS.ORDERS, {
+      const response = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          items: orderItems,
-          shippingAddress: orderShippingAddress,
-          total,
-          paymentIntentId,
-        }),
+        headers,
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
         throw new Error("Failed to create order");
       }
 
-      await response.json();
+      const orderData = await response.json();
       setPaymentStatus("success");
       setShowSuccessModal(true);
       clearCart();
+
+      // Store tracking number for guest users
+      if (!user && orderData.trackingNumber) {
+        setTrackingNumber(orderData.trackingNumber);
+        localStorage.setItem("lastTrackingNumber", orderData.trackingNumber);
+      }
     } catch {
       setPaymentError("Failed to create order. Please contact support.");
       setPaymentStatus("error");
@@ -223,78 +261,134 @@ const CheckoutPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Shipping Address */}
-            {user && (
+            {/* Guest Information */}
+            {!user && (
               <div className="bg-white rounded-lg shadow-md mt-4 sm:mt-6">
                 <div className="p-4 sm:p-6 border-b border-gray-200">
                   <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-                    Shipping Address
+                    Guest Information
                   </h2>
                 </div>
 
                 <div className="p-4 sm:p-6 space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        name="fullName"
-                        value={shippingAddress.fullName}
-                        onChange={handleAddressChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Country
-                      </label>
-                      <input
-                        type="text"
-                        name="country"
-                        value={shippingAddress.country}
-                        onChange={handleAddressChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600"
-                        readOnly
-                      />
-                    </div>
-                  </div>
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Address
+                      Full Name
                     </label>
                     <input
                       type="text"
-                      name="address"
-                      value={shippingAddress.address}
-                      onChange={handleAddressChange}
+                      name="fullName"
+                      value={guestInfo.fullName}
+                      onChange={handleGuestInfoChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                      placeholder="Enter your full address"
+                      placeholder="Enter your full name"
                       required
                     />
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      City
+                      Email
                     </label>
                     <input
-                      type="text"
-                      name="city"
-                      value={shippingAddress.city}
-                      onChange={handleAddressChange}
+                      type="email"
+                      name="email"
+                      value={guestInfo.email}
+                      onChange={handleGuestInfoChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                      placeholder="Enter your city"
+                      placeholder="Enter your email"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={guestInfo.phone}
+                      onChange={handleGuestInfoChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                      placeholder="Enter your phone number"
                       required
                     />
                   </div>
                 </div>
               </div>
             )}
+
+            {/* Shipping Address */}
+            <div className="bg-white rounded-lg shadow-md mt-4 sm:mt-6">
+              <div className="p-4 sm:p-6 border-b border-gray-200">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                  Shipping Address
+                </h2>
+              </div>
+
+              <div className="p-4 sm:p-6 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={shippingAddress.fullName}
+                      onChange={handleAddressChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Country
+                    </label>
+                    <input
+                      type="text"
+                      name="country"
+                      value={shippingAddress.country}
+                      onChange={handleAddressChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600"
+                      readOnly
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Address
+                  </label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={shippingAddress.address}
+                    onChange={handleAddressChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Enter your full address"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={shippingAddress.city}
+                    onChange={handleAddressChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="Enter your city"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Order Summary */}
@@ -328,66 +422,62 @@ const CheckoutPage: React.FC = () => {
                   </div>
                 </div>
 
-                {user ? (
-                  paymentStatus === "success" ? (
-                    <div className="text-center py-4 sm:py-6">
-                      <div className="animate-pulse">
-                        <CheckCircle className="h-12 w-12 sm:h-16 sm:w-16 text-green-500 mx-auto mb-4" />
-                        <h3 className="text-base sm:text-lg font-semibold text-green-800 mb-2">
-                          Processing...
-                        </h3>
-                        <p className="text-green-600 text-sm sm:text-base">
-                          Your payment is being processed.
-                        </p>
-                      </div>
-                    </div>
-                  ) : paymentStatus === "error" ? (
-                    <div className="text-center py-4 sm:py-6">
-                      <div className="text-red-500 mb-4">
-                        <svg
-                          className="h-12 w-12 sm:h-16 sm:w-16 mx-auto"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </div>
-                      <h3 className="text-base sm:text-lg font-semibold text-red-800 mb-2">
-                        Payment Failed
+                {paymentStatus === "success" ? (
+                  <div className="text-center py-4 sm:py-6">
+                    <div className="animate-pulse">
+                      <CheckCircle className="h-12 w-12 sm:h-16 sm:w-16 text-green-500 mx-auto mb-4" />
+                      <h3 className="text-base sm:text-lg font-semibold text-green-800 mb-2">
+                        Processing...
                       </h3>
-                      <p className="text-red-600 mb-4 text-sm sm:text-base">
-                        {paymentError}
+                      <p className="text-green-600 text-sm sm:text-base">
+                        Your payment is being processed.
                       </p>
-                      <button
-                        onClick={() => setPaymentStatus("pending")}
-                        className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm transition-colors"
+                    </div>
+                  </div>
+                ) : paymentStatus === "error" ? (
+                  <div className="text-center py-4 sm:py-6">
+                    <div className="text-red-500 mb-4">
+                      <svg
+                        className="h-12 w-12 sm:h-16 sm:w-16 mx-auto"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
                       >
-                        Try Again
-                      </button>
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <StripeCheckout
-                        amount={total}
-                        onSuccess={handlePaymentSuccess}
-                        onError={handlePaymentError}
-                        disabled={
-                          !shippingAddress.address || !shippingAddress.city
-                        }
-                      />
-                    </div>
-                  )
+                    <h3 className="text-base sm:text-lg font-semibold text-red-800 mb-2">
+                      Payment Failed
+                    </h3>
+                    <p className="text-red-600 mb-4 text-sm sm:text-base">
+                      {paymentError}
+                    </p>
+                    <button
+                      onClick={() => setPaymentStatus("pending")}
+                      className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm transition-colors"
+                    >
+                      Try Again
+                    </button>
+                  </div>
                 ) : (
-                  <button
-                    onClick={() => navigate("/login")}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition-colors"
-                  >
-                    Login to Checkout
-                  </button>
+                  <div className="space-y-4">
+                    <StripeCheckout
+                      amount={total}
+                      onSuccess={handlePaymentSuccess}
+                      onError={handlePaymentError}
+                      disabled={
+                        !shippingAddress.address ||
+                        !shippingAddress.city ||
+                        (!user &&
+                          (!guestInfo.fullName ||
+                            !guestInfo.email ||
+                            !guestInfo.phone))
+                      }
+                    />
+                  </div>
                 )}
 
                 <div className="text-xs text-gray-500 text-center space-y-1 pt-4 border-t border-gray-100">
@@ -432,6 +522,32 @@ const CheckoutPage: React.FC = () => {
                 Your order has been placed successfully. You will receive a
                 confirmation email shortly.
               </p>
+
+              {/* Tracking Number for Guest Users */}
+              {!user && trackingNumber && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+                  <h3 className="text-sm sm:text-base font-semibold text-blue-800 mb-2">
+                    Your Tracking Number
+                  </h3>
+                  <p className="text-blue-700 text-xs sm:text-sm mb-3">
+                    Use this tracking number to track your order status:
+                  </p>
+                  <div className="bg-white border border-blue-300 rounded-lg p-3 mb-3">
+                    <p className="text-lg font-mono font-bold text-blue-900 text-center">
+                      {trackingNumber}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setShowSuccessModal(false);
+                      navigate(`/track?trackingId=${trackingNumber}`);
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors w-full"
+                  >
+                    Track Your Order
+                  </button>
+                </div>
+              )}
 
               {/* Review Prompt */}
               <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">

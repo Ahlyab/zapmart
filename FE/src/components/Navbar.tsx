@@ -15,6 +15,7 @@ import {
   ChevronDown,
   LogOut,
   User as UserIcon,
+  PackageSearch,
 } from "lucide-react";
 
 const Navbar: React.FC = () => {
@@ -101,9 +102,9 @@ const Navbar: React.FC = () => {
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 lg:h-20">
+        <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center flex-shrink-0">
             <Link to="/" className="flex items-center space-x-3 group">
               <div className="relative">
                 <div className="w-10 h-10 lg:w-12 lg:h-12 bg-blue-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
@@ -115,7 +116,7 @@ const Navbar: React.FC = () => {
                 <span className="text-xl lg:text-2xl font-bold text-blue-600">
                   ZapMart
                 </span>
-                <span className="text-xs text-gray-500 mt-1/2 font-bold ">
+                <span className="text-xs text-gray-500 mt-0.5 font-bold">
                   Your Ultimate Store
                 </span>
               </div>
@@ -123,7 +124,7 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-1">
+          <div className="hidden lg:flex items-center space-x-1 flex-shrink-0">
             {user && (
               <>
                 <Link
@@ -158,22 +159,22 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Right Side Actions */}
-          <div className="hidden lg:flex items-center space-x-4">
+          <div className="hidden lg:flex items-center space-x-4 flex-1 justify-end max-w-2xl ml-4">
             {/* Search Bar */}
-            <form onSubmit={handleSearch} className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <form onSubmit={handleSearch} className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
               <input
                 type="text"
                 placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-64 pl-10 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+                className="w-full pl-10 pr-12 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
               />
               <button
                 type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white p-1 rounded-lg transition-colors"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white p-1.5 rounded-lg transition-colors flex items-center justify-center"
               >
-                <Search className="h-3 w-3" />
+                <Search className="h-3.5 w-3.5" />
               </button>
             </form>
 
@@ -182,7 +183,7 @@ const Navbar: React.FC = () => {
                 {/* Cart */}
                 <Link
                   to="/checkout"
-                  className="relative p-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 group"
+                  className="relative p-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 group flex-shrink-0"
                 >
                   <ShoppingCart className="h-5 w-5 group-hover:scale-110 transition-transform" />
                   {getItemCount() > 0 && (
@@ -193,20 +194,20 @@ const Navbar: React.FC = () => {
                 </Link>
 
                 {/* Notifications */}
-                <button className="relative p-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 group">
+                <button className="relative p-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300 group flex-shrink-0">
                   <Bell className="h-5 w-5 group-hover:scale-110 transition-transform" />
                   <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></div>
                 </button>
 
                 {/* Wishlist */}
-                <button className="p-3 text-gray-700 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-300 group">
+                <button className="p-3 text-gray-700 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-300 group flex-shrink-0">
                   <Heart className="h-5 w-5 group-hover:scale-110 transition-transform" />
                 </button>
               </>
             ) : null}
 
             {user ? (
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 flex-shrink-0">
                 <div className="relative" ref={userDropdownRef}>
                   <button
                     onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
@@ -274,19 +275,27 @@ const Navbar: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 flex-shrink-0">
                 <Link
                   to="/login"
-                  className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-xl text-sm font-medium transition-all duration-300"
+                  className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-xl text-sm font-medium transition-all duration-300 whitespace-nowrap"
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg whitespace-nowrap"
                 >
                   Sign Up
                 </Link>
+                {!user && (
+                  <Link
+                    to="/track"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg whitespace-nowrap"
+                  >
+                    Track
+                  </Link>
+                )}
               </div>
             )}
           </div>
@@ -345,7 +354,7 @@ const Navbar: React.FC = () => {
 
             {/* Navigation Links */}
             <div className="space-y-2">
-              {user && (
+              {user ? (
                 <>
                   <Link
                     to="/products"
@@ -379,6 +388,21 @@ const Navbar: React.FC = () => {
                     Notifications
                   </button>
                 </>
+              ) : (
+                <Link
+                  to="/track"
+                  className={`block px-4 py-3 rounded-xl text-gray-700 transition-all duration-300 ${
+                    isActive("/track")
+                      ? "text-blue-600 bg-blue-50 font-medium"
+                      : "hover:text-blue-600 hover:bg-gray-50"
+                  }`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <div className="flex items-center space-x-2">
+                    <PackageSearch className="h-5 w-5" />
+                    <span>Track Order</span>
+                  </div>
+                </Link>
               )}
             </div>
 

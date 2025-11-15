@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ShoppingCart, ArrowLeft, Package, Truck, Star } from "lucide-react";
+import {
+  ShoppingCart,
+  ArrowLeft,
+  Package,
+  Truck,
+  Star,
+  X,
+  LogIn,
+  User,
+} from "lucide-react";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import axios from "axios";
@@ -48,6 +57,7 @@ const ProductDetailPage: React.FC = () => {
       }
     | undefined
   >(undefined);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const fetchProduct = async () => {
     try {
@@ -95,6 +105,12 @@ const ProductDetailPage: React.FC = () => {
 
   const handleAddToCart = () => {
     if (product) {
+      // Check if user is logged in
+      if (!user) {
+        setShowLoginModal(true);
+        return;
+      }
+
       for (let i = 0; i < quantity; i++) {
         addToCart({
           id: product.id,
@@ -105,6 +121,28 @@ const ProductDetailPage: React.FC = () => {
           weight: product.weight,
         });
       }
+      navigate("/checkout");
+    }
+  };
+
+  const handleLogin = () => {
+    setShowLoginModal(false);
+    navigate("/login");
+  };
+
+  const handleContinueAsGuest = () => {
+    if (product) {
+      for (let i = 0; i < quantity; i++) {
+        addToCart({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          images: product.images,
+          affiliatedLink: product.affiliatedLink,
+          weight: product.weight,
+        });
+      }
+      setShowLoginModal(false);
       navigate("/checkout");
     }
   };
@@ -311,6 +349,47 @@ const ProductDetailPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Login/Guest Modal */}
+      {showLoginModal && (
+        <div className="fixed inset-0 bg-blur-sm bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full transform transition-all duration-300 scale-100">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Continue Shopping
+                </h2>
+                <button
+                  onClick={() => setShowLoginModal(false)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              <p className="text-gray-600 mb-6">
+                Please login to your account or continue as a guest to proceed
+                with checkout.
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={handleLogin}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                >
+                  <LogIn className="h-5 w-5" />
+                  <span>Login</span>
+                </button>
+                <button
+                  onClick={handleContinueAsGuest}
+                  className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                >
+                  <User className="h-5 w-5" />
+                  <span>Continue as Guest</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

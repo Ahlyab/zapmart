@@ -14,6 +14,7 @@ import CheckoutPage from "./pages/CheckoutPage";
 import ProfilePage from "./pages/ProfilePage";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TrackPage from "./pages/TrackPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -31,14 +32,8 @@ function App() {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/terms" element={<TermsAndConditions />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route
-                path="/checkout"
-                element={
-                  <ProtectedRoute>
-                    <CheckoutPage />
-                  </ProtectedRoute>
-                }
-              />
+              <Route path="/track" element={<TrackPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
               <Route
                 path="/profile"
                 element={
