@@ -40,7 +40,15 @@ const orderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "paid", "shipped", "delivered", "cancelled"],
+      enum: [
+        "pending",
+        "paid",
+        "preparing",
+        "handed to delivery partner",
+        "shipped",
+        "delivered",
+        "cancelled",
+      ],
       default: "pending",
     },
     paymentIntentId: {
@@ -48,6 +56,10 @@ const orderSchema = new mongoose.Schema(
       default: null,
     },
     trackingNumber: {
+      type: String,
+      default: null,
+    },
+    deliveryPartner: {
       type: String,
       default: null,
     },
