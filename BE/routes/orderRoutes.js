@@ -4,7 +4,8 @@ import { authenticateToken, requireRole } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Public routes
+// Public routes (unprotected - no authentication required)
+// Guest checkout endpoint - allows guests to place orders without logging in
 router.post("/guest", orderController.createGuestOrder);
 router.get("/track", orderController.trackOrder);
 

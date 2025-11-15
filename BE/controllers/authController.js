@@ -36,3 +36,18 @@ export const getProfile = async (req, res) => {
     res.status(404).json({ message: error.message });
   }
 };
+
+export const createGuestAccount = async (req, res) => {
+  try {
+    const { guestInfo } = req.body;
+    
+    if (!guestInfo || !guestInfo.fullName || !guestInfo.email || !guestInfo.phone) {
+      return res.status(400).json({ message: 'Guest information is required' });
+    }
+    
+    const { user, token } = await authService.createOrGetGuestUser(guestInfo);
+    res.status(201).json({ user, token });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};

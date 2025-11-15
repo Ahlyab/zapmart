@@ -88,3 +88,48 @@ export const getUserProfile = async (userId) => {
     throw error;
   }
 };
+
+export const createOrGetGuestUser = async (guestInfo) => {
+  try {
+    const { fullName, email, phone } = guestInfo;
+    
+    if (!fullName || !email || !phone) {
+      throw new Error('Full name, email, and phone are required');
+    }
+    
+    // Check if user with this email already exists
+    let user = await User.findOne({ email: email.toLowerCase() });
+    
+    if (!user) {
+      // Create a new guest user without password
+      user = new User({
+        name: fullName,
+        email: email.toLowerCase(),
+        phone: phone,
+        password: undefined, // No password for guest users
+        role: 'customer',
+        isApproved: true,
+      });
+      await user.save();
+    } else {
+      // Update existing user's info if needed
+      if (!user.name || user.name === '') {
+        user.name = fullName;
+      }
+      if (!user.phone || user.phone === '') {
+        user.phone = phone;
+      }
+      await user.save();
+    }
+    
+    // Generate token for guest user
+    const token = jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      JWT_SECRET
+    );
+    
+    return { user, token };
+  } catch (error) {
+    throw error;
+  }
+};

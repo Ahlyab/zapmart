@@ -7,6 +7,8 @@ const router = express.Router();
 // Public routes
 router.post('/register', authController.register);
 router.post('/login', authController.login);
+// Guest checkout - create/get guest account and return token (unprotected)
+router.post('/guest', authController.createGuestAccount);
 
 // Protected routes
 router.get('/profile', authenticateToken, authController.getProfile);
