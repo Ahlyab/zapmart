@@ -59,3 +59,38 @@ export const updateOrderStatus = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+export const createGuestOrder = async (req, res) => {
+  try {
+    const { guestInfo, ...orderData } = req.body;
+
+    if (
+      !guestInfo ||
+      !guestInfo.fullName ||
+      !guestInfo.email ||
+      !guestInfo.phone
+    ) {
+      return res.status(400).json({ message: "Guest information is required" });
+    }
+
+    const order = await orderService.createGuestOrder(orderData, guestInfo);
+    res.status(201).json(order);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+export const trackOrder = async (req, res) => {
+  try {
+    const { trackingNumber } = req.query;
+
+    if (!trackingNumber) {
+      return res.status(400).json({ message: "Tracking number is required" });
+    }
+
+    const order = await orderService.getOrderByTrackingNumber(trackingNumber);
+    res.json(order);
+  } catch (error) {
+    res.status(404).json({ message: error.message });
+  }
+};

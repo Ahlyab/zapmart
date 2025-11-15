@@ -58,6 +58,8 @@ const orderSchema = new mongoose.Schema(
     trackingNumber: {
       type: String,
       default: null,
+      unique: true,
+      sparse: true, // Allows multiple null values but enforces uniqueness for non-null values
     },
     deliveryPartner: {
       type: String,

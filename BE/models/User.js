@@ -17,8 +17,18 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
-      minlength: 6,
+      required: false, // Password is optional for guest users
+      validate: {
+        validator: function (value) {
+          // If password is provided, it must be at least 6 characters
+          if (value && value.length > 0) {
+            return value.length >= 6;
+          }
+          // If password is not provided (empty or undefined), it's valid (for guest users)
+          return true;
+        },
+        message: "Password must be at least 6 characters long",
+      },
     },
     role: {
       type: String,
@@ -57,8 +67,13 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Hash password before saving
+// Hash password before saving (only if password is provided)
 userSchema.pre("save", async function (next) {
+  // Skip password hashing if password is not provided (guest users)
+  if (!this.password || this.password === "") {
+    return next();
+  }
+
   if (!this.isModified("password")) return next();
 
   try {
@@ -72,6 +87,10 @@ userSchema.pre("save", async function (next) {
 
 // Compare password method
 userSchema.methods.comparePassword = async function (candidatePassword) {
+  // Guest users don't have passwords
+  if (!this.password) {
+    return false;
+  }
   return await bcrypt.compare(candidatePassword, this.password);
 };
 

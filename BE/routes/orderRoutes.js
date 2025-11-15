@@ -4,6 +4,10 @@ import { authenticateToken, requireRole } from "../middleware/auth.js";
 
 const router = express.Router();
 
+// Public routes
+router.post("/guest", orderController.createGuestOrder);
+router.get("/track", orderController.trackOrder);
+
 // Protected routes
 router.post("/", authenticateToken, orderController.createOrder);
 router.get("/", authenticateToken, orderController.getUserOrders);
