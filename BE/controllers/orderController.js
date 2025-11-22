@@ -83,11 +83,12 @@ export const createGuestOrder = async (req, res) => {
 export const trackOrder = async (req, res) => {
   try {
     const { trackingNumber } = req.query;
-
+    
     if (!trackingNumber) {
       return res.status(400).json({ message: "Tracking number is required" });
     }
 
+    // Search by internalTrackingNumber (the auto-generated tracking number)
     const order = await orderService.getOrderByTrackingNumber(trackingNumber);
     res.json(order);
   } catch (error) {

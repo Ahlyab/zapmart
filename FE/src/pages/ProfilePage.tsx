@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { API_ENDPOINTS } from '../config/api';
-import { User, Save, ArrowLeft, MapPin, Phone, Mail, User as UserIcon } from 'lucide-react';
+import { User, Save, ArrowLeft, MapPin, Phone, User as UserIcon } from 'lucide-react';
 
 interface ProfileData {
   name: string;

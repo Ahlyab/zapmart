@@ -9,7 +9,6 @@ import {
   Users,
   Mail,
   Phone,
-  CreditCard,
   Globe,
   Settings,
   AlertTriangle,

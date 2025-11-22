@@ -175,10 +175,13 @@ const CheckoutPage: React.FC = () => {
       setShowSuccessModal(true);
       clearCart();
 
-      // Store tracking number for guest users
-      if (!user && orderData.trackingNumber) {
-        setTrackingNumber(orderData.trackingNumber);
-        localStorage.setItem("lastTrackingNumber", orderData.trackingNumber);
+      // Store internal tracking number for guest users
+      if (!user && orderData.internalTrackingNumber) {
+        setTrackingNumber(orderData.internalTrackingNumber);
+        localStorage.setItem(
+          "lastTrackingNumber",
+          orderData.internalTrackingNumber
+        );
       }
     } catch {
       setPaymentError("Failed to create order. Please contact support.");
@@ -526,7 +529,9 @@ const CheckoutPage: React.FC = () => {
                     {!user && isCreatingGuestAccount && (
                       <div className="text-center py-4">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                        <p className="text-sm text-gray-600">Setting up guest account...</p>
+                        <p className="text-sm text-gray-600">
+                          Setting up guest account...
+                        </p>
                       </div>
                     )}
                     <StripeCheckout

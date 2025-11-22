@@ -3,23 +3,24 @@ import Product from "../models/Product.js";
 import User from "../models/User.js";
 import crypto from "crypto";
 
-// Generate unique tracking number
-const generateTrackingNumber = async () => {
-  let trackingNumber;
+// Generate unique internal tracking number
+const generateInternalTrackingNumber = async () => {
+  let internalTrackingNumber;
   let isUnique = false;
 
   while (!isUnique) {
-    // Generate a tracking number: ZM + 9 random digits
-    trackingNumber = "ZM" + crypto.randomInt(100000000, 999999999).toString();
+    // Generate an internal tracking number: ZM + 9 random digits
+    internalTrackingNumber =
+      "ZM" + crypto.randomInt(100000000, 999999999).toString();
 
     // Check if it already exists
-    const existingOrder = await Order.findOne({ trackingNumber });
+    const existingOrder = await Order.findOne({ internalTrackingNumber });
     if (!existingOrder) {
       isUnique = true;
     }
   }
 
-  return trackingNumber;
+  return internalTrackingNumber;
 };
 
 export const createOrder = async (orderData, userId) => {
@@ -63,13 +64,20 @@ export const createGuestOrder = async (orderData, guestInfo) => {
       await user.save();
     }
 
-    // Generate unique tracking number for guest orders
-    const trackingNumber = await generateTrackingNumber();
+    // remove null values from orderData
+    Object.keys(orderData).forEach((key) => {
+      if (orderData[key] === null) {
+        delete orderData[key];
+      }
+    });
+
+    // Generate unique internal tracking number for guest orders
+    const internalTrackingNumber = await generateInternalTrackingNumber();
 
     const order = new Order({
       ...orderData,
       user: user._id,
-      trackingNumber,
+      internalTrackingNumber,
       status: "paid", // Guest orders start as paid since payment is already processed
     });
 
@@ -79,10 +87,10 @@ export const createGuestOrder = async (orderData, guestInfo) => {
       "name price imageUrl"
     );
 
-    // Return order with tracking number
+    // Return order with internal tracking number
     return {
       ...populatedOrder.toObject(),
-      trackingNumber,
+      internalTrackingNumber,
     };
   } catch (error) {
     throw error;
@@ -174,30 +182,23 @@ export const updateOrderStatus = async (
     // Prepare update data
     const updateData = { status, updatedAt: new Date() };
     if (status === "handed to delivery partner") {
-      // Check if order already has a tracking number
+      // Check if order already has an internal tracking number
       const existingOrder = await Order.findById(orderId);
-      if (!existingOrder.trackingNumber) {
-        // Only set tracking number if it doesn't already exist
-        if (trackingNumber) {
-          // Check if tracking number is unique
-          const orderWithSameTracking = await Order.findOne({
-            trackingNumber,
-            _id: { $ne: orderId },
-          });
-          if (!orderWithSameTracking) {
-            updateData.trackingNumber = trackingNumber;
-          } else {
-            // Generate a new unique tracking number
-            updateData.trackingNumber = await generateTrackingNumber();
-          }
-        } else {
-          // Generate tracking number if not provided
-          updateData.trackingNumber = await generateTrackingNumber();
-        }
+
+      // Generate internal tracking number if not already exists
+      if (!existingOrder.internalTrackingNumber) {
+        updateData.internalTrackingNumber =
+          await generateInternalTrackingNumber();
       }
+
+      // trackingNumber is for seller-provided external courier tracking (not unique)
+      if (trackingNumber) {
+        updateData.trackingNumber = trackingNumber;
+      }
+
       if (deliveryPartner) updateData.deliveryPartner = deliveryPartner;
     }
-    // Don't remove tracking number if status changes - keep it for reference
+    // Don't remove tracking numbers if status changes - keep them for reference
 
     const order = await Order.findOneAndUpdate(query, updateData, {
       new: true,
@@ -214,9 +215,10 @@ export const updateOrderStatus = async (
   }
 };
 
-export const getOrderByTrackingNumber = async (trackingNumber) => {
+export const getOrderByTrackingNumber = async (internalTrackingNumber) => {
   try {
-    const order = await Order.findOne({ trackingNumber })
+    // Search by internalTrackingNumber (auto-generated tracking number)
+    const order = await Order.findOne({ internalTrackingNumber })
       .populate("user", "name email phone")
       .populate("items.product", "name price imageUrl");
 

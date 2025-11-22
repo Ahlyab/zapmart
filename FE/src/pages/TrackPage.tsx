@@ -25,7 +25,8 @@ interface OrderItem {
 
 interface Order {
   id: string;
-  trackingNumber: string;
+  internalTrackingNumber: string;
+  trackingNumber?: string; // Optional seller-provided tracking number
   status: string;
   total: number;
   items: OrderItem[];
@@ -232,8 +233,16 @@ const TrackPage: React.FC = () => {
                 <div className="space-y-2 text-sm">
                   <p>
                     <span className="font-medium">Tracking Number:</span>{" "}
-                    <span className="font-mono">{order.trackingNumber}</span>
+                    <span className="font-mono">
+                      {order.internalTrackingNumber}
+                    </span>
                   </p>
+                  {order.trackingNumber && (
+                    <p>
+                      <span className="font-medium">Courier Tracking:</span>{" "}
+                      <span className="font-mono">{order.trackingNumber}</span>
+                    </p>
+                  )}
                   <p>
                     <span className="font-medium">Order Date:</span>{" "}
                     {formatDate(order.createdAt)}

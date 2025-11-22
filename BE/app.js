@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
@@ -48,6 +49,9 @@ app.use(
 );
 app.use(express.json());
 
+// HTTP request logger middleware
+app.use(morgan("dev")); // 'dev' format: :method :url :status :response-time ms - :res[content-length]
+
 // Connect to MongoDB
 connectDB();
 
@@ -81,8 +85,19 @@ app.get("/", (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: "Something went wrong!" });
+  console.error("Error occurred:", {
+    message: err.message,
+    stack: err.stack,
+    url: req.url,
+    method: req.method,
+    timestamp: new Date().toISOString(),
+  });
+  
+  const statusCode = err.statusCode || err.status || 500;
+  res.status(statusCode).json({
+    message: err.message || "Something went wrong!",
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+  });
 });
 
 // 404 handler
