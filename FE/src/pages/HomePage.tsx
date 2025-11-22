@@ -13,6 +13,7 @@ import {
   Zap,
   Heart,
   Eye,
+  X,
 } from "lucide-react";
 import axios from "axios";
 import { API_ENDPOINTS } from "../config/api";
@@ -28,6 +29,13 @@ interface Product {
 const HomePage: React.FC = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState<{
+    title: string;
+    content: string;
+    icon: React.ReactNode;
+    gradient: string;
+  } | null>(null);
 
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
@@ -53,6 +61,47 @@ const HomePage: React.FC = () => {
     { name: "Beauty", icon: "💄", color: "from-rose-500 to-pink-500" },
   ];
 
+  const features = [
+    {
+      title: "Secure Shopping",
+      content:
+        "Shop with confidence on our website knowing your security is our top priority. We use industry-standard encryption to protect your personal and payment information at every step. You can securely pay using Visa, Mastercard, or PayPal, giving you trusted and flexible payment options. Your data is handled safely, and we never share your information with third parties. Enjoy a safe, seamless, and worry-free shopping experience with us.",
+      icon: <Shield className="h-10 w-10 text-white" />,
+      gradient: "from-blue-500 to-blue-600",
+    },
+    {
+      title: "Fast Delivery",
+      content:
+        "We pride ourselves on offering a fast and reliable delivery service to get your order to you quickly. For UK customers, we work with top delivery companies such as Royal Mail, DPD, and Hermes to ensure your items arrive within 3–5 working days. For our international customers, we offer secure shipping with a delivery time of 10–15 working days, so you can shop with confidence no matter where you are in the world.",
+      icon: <Truck className="h-10 w-10 text-white" />,
+      gradient: "from-green-500 to-green-600",
+    },
+    {
+      title: "Verified Seller",
+      content:
+        "We are a verified and trusted seller, committed to providing a safe and transparent shopping experience. Our team is easily reachable through email or phone for any questions or support you may need. All orders include the relevant taxes and duties where applicable, so there are no hidden fees upon delivery. Shop with peace of mind knowing you're buying from a reputable source with clear communication and reliable service.",
+      icon: <Users className="h-10 w-10 text-white" />,
+      gradient: "from-purple-500 to-purple-600",
+    },
+    {
+      title: "Best Prices",
+      content:
+        "We are proud to offer the best prices on our products, giving you exceptional value for your money. Our team regularly checks the market to ensure our prices stay competitive and fair. If you find the same item elsewhere at a lower price, we'll work to match it so you can shop with confidence knowing you're always getting the best deal right here.",
+      icon: <Zap className="h-10 w-10 text-white" />,
+      gradient: "from-orange-500 to-orange-600",
+    },
+  ];
+
+  const handleFeatureClick = (feature: typeof features[0]) => {
+    setSelectedFeature(feature);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedFeature(null);
+  };
+
   // Carousel slides: first is the original hero, rest are images
   const heroSlide = (
     <section className="relative bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 overflow-hidden min-h-[500px] flex items-center justify-center">
@@ -61,17 +110,17 @@ const HomePage: React.FC = () => {
         <div className="text-center text-white">
           <div className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-full px-6 py-2 mb-8">
             <TrendingUp className="h-5 w-5 mr-2" />
-            <span className="text-sm font-medium">
+            <span className="text-xs font-medium">
               Trusted by 10,000+ customers
             </span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
             Discover Amazing
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-300">
               Products
             </span>
           </h1>
-          <p className="text-xl md:text-2xl text-blue-100 mb-10 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-blue-100 mb-10 max-w-3xl mx-auto leading-relaxed">
             Your one-stop zapmart for everything you need. From electronics to
             fashion, home goods to sports equipment - find it all here with
             unbeatable prices.
@@ -79,7 +128,7 @@ const HomePage: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
               to="/products"
-              className="group bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 hover:border-white/50 font-bold py-4 px-8 rounded-full text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl flex items-center"
+              className="group bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 hover:border-white/50 font-bold py-4 px-8 rounded-full text-base transition-all duration-300 transform hover:scale-105 hover:shadow-2xl flex items-center"
               style={{
                 background: "rgba(255,255,255,0.2)",
                 backdropFilter: "blur(8px)",
@@ -90,7 +139,7 @@ const HomePage: React.FC = () => {
             </Link>
             <Link
               to="/register"
-              className="group bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 hover:border-white/50 font-bold py-4 px-8 rounded-full text-lg transition-all duration-300 transform hover:scale-105 flex items-center"
+              className="group bg-white/20 backdrop-blur-sm border-2 border-white/30 text-white hover:bg-white/30 hover:border-white/50 font-bold py-4 px-8 rounded-full text-base transition-all duration-300 transform hover:scale-105 flex items-center"
               style={{
                 background: "rgba(255,255,255,0.2)",
                 backdropFilter: "blur(8px)",
@@ -122,12 +171,7 @@ const HomePage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left side - Content */}
           <div className="text-white">
-            <div className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-full px-6 py-2 mb-8">
-              <ShoppingBag className="h-5 w-5 mr-2" />
-              <span className="text-sm font-medium">
-                Explore All Categories
-              </span>
-            </div>
+            
             <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
               Shop by
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-300">
@@ -141,20 +185,21 @@ const HomePage: React.FC = () => {
             </p>
             <div className="flex flex-wrap gap-3 mb-8">
               {categories.slice(0, 4).map((category, index) => (
-                <div
+                <Link
                   key={index}
-                  className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 flex items-center"
+                  to="/products"
+                  className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 flex items-center hover:bg-white/30 transition-colors cursor-pointer"
                 >
                   <span className="text-lg mr-2">{category.icon}</span>
                   <span className="text-sm font-medium">{category.name}</span>
-                </div>
+                </Link>
               ))}
             </div>
             <Link
               to="/products"
               className="group bg-white text-green-600 hover:bg-gray-100 font-bold py-4 px-8 rounded-full text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl flex items-center inline-flex"
             >
-              Browse All Categories
+              Browse All Products
               <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
@@ -168,7 +213,7 @@ const HomePage: React.FC = () => {
                 className="max-h-[350px] w-auto rounded-2xl shadow-2xl border-4 border-white/30 object-contain"
                 style={{ background: "rgba(255,255,255,0.05)" }}
               />
-              <div className="absolute -top-4 -right-4 bg-yellow-400 text-gray-900 px-3 py-1 rounded-full text-sm font-bold animate-pulse">
+              <div className="absolute top-2 right-2 bg-yellow-400 text-gray-900 px-3 py-1 rounded-full text-sm font-bold animate-pulse shadow-lg">
                 New Arrivals!
               </div>
             </div>
@@ -379,53 +424,32 @@ const HomePage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center group">
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Shield className="h-10 w-10 text-white" />
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="text-center group cursor-pointer"
+                onClick={() => handleFeatureClick(feature)}
+              >
+                <div
+                  className={`bg-gradient-to-br ${feature.gradient} w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300`}
+                >
+                  {feature.icon}
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  {index === 0 &&
+                    "Bank-level security with encrypted payments and fraud protection"}
+                  {index === 1 &&
+                    "Quick delivery across the UK with real-time tracking"}
+                  {index === 2 &&
+                    "All sellers are thoroughly vetted and quality-checked"}
+                  {index === 3 &&
+                    "Competitive pricing with regular deals and discounts"}
+                </p>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Secure Shopping
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Bank-level security with encrypted payments and fraud protection
-              </p>
-            </div>
-
-            <div className="text-center group">
-              <div className="bg-gradient-to-br from-green-500 to-green-600 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Truck className="h-10 w-10 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Fast Delivery
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Quick delivery across the UK with real-time tracking
-              </p>
-            </div>
-
-            <div className="text-center group">
-              <div className="bg-gradient-to-br from-purple-500 to-purple-600 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Users className="h-10 w-10 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Verified Sellers
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                All sellers are thoroughly vetted and quality-checked
-              </p>
-            </div>
-
-            <div className="text-center group">
-              <div className="bg-gradient-to-br from-orange-500 to-orange-600 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                <Zap className="h-10 w-10 text-white" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Best Prices
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Competitive pricing with regular deals and discounts
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -532,6 +556,44 @@ const HomePage: React.FC = () => {
           <div className="w-4 h-4 bg-pink-300 rounded-full opacity-60"></div>
         </div>
       </section>
+
+      {/* Feature Modal */}
+      {isModalOpen && selectedFeature && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={closeModal}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl transform transition-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+              <div className="flex items-center gap-4">
+                <div
+                  className={`bg-gradient-to-br ${selectedFeature.gradient} w-12 h-12 rounded-xl flex items-center justify-center`}
+                >
+                  {selectedFeature.icon}
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {selectedFeature.title}
+                </h2>
+              </div>
+              <button
+                onClick={closeModal}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                aria-label="Close modal"
+              >
+                <X className="h-6 w-6 text-gray-600" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-line">
+                {selectedFeature.content}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Footer Section */}
       <footer className="bg-gray-900 text-gray-200 py-8 border-t border-gray-800">
