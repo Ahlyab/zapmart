@@ -92,7 +92,7 @@ app.use((err, req, res, next) => {
     method: req.method,
     timestamp: new Date().toISOString(),
   });
-  
+
   const statusCode = err.statusCode || err.status || 500;
   res.status(statusCode).json({
     message: err.message || "Something went wrong!",
