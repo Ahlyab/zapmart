@@ -18,6 +18,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import sellerRoutes from "./routes/sellerRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import favoriteRoutes from "./routes/favoriteRoutes.js";
 
 // Import initialization utility
 import { initializeData } from "./utils/initData.js";
@@ -67,6 +68,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/seller", sellerRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api", paymentRoutes);
+app.use("/api/favorites", favoriteRoutes);
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

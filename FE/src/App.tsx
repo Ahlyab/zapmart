@@ -16,6 +16,7 @@ import ProfilePage from "./pages/ProfilePage";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TrackPage from "./pages/TrackPage";
+import FavoritesPage from "./pages/FavoritesPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -36,6 +37,14 @@ function App() {
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/track" element={<TrackPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
+              <Route
+                path="/favorites"
+                element={
+                  <ProtectedRoute>
+                    <FavoritesPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/profile"
                 element={

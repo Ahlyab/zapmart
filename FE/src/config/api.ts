@@ -37,6 +37,9 @@ export const API_ENDPOINTS = {
   
   // Reviews
   REVIEWS: `${API_BASE_URL}/api/reviews`,
+  
+  // Favorites
+  FAVORITES: `${API_BASE_URL}/api/favorites`,
 };
 
 // Helper function to get full API URL

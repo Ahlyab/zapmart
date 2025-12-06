@@ -145,6 +145,7 @@ const AdminDashboard: React.FC = () => {
   >("overview");
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -188,61 +189,70 @@ const AdminDashboard: React.FC = () => {
     fetchData();
   }, []);
 
-  // Filter based on active tab and search term
+  // Filter based on active tab, search term, and role filter
   useEffect(() => {
-    if (!searchTerm.trim()) {
+    if (activeTab === "users") {
+      let filtered = users;
+
+      // Apply role filter
+      if (roleFilter !== "all") {
+        filtered = filtered.filter((user) => user.role === roleFilter);
+      }
+
+      // Apply search term filter
+      if (searchTerm.trim()) {
+        const searchLower = searchTerm.toLowerCase();
+        filtered = filtered.filter((user) => {
+          return (
+            user.name.toLowerCase().includes(searchLower) ||
+            user.email.toLowerCase().includes(searchLower) ||
+            user.role.toLowerCase().includes(searchLower)
+          );
+        });
+      }
+
+      setFilteredUsers(filtered);
+    } else if (!searchTerm.trim()) {
       setFilteredProducts(products);
-      setFilteredUsers(users);
       setFilteredTransactions(transactions);
       setFilteredCategories(categories);
-      return;
+    } else {
+      if (activeTab === "products") {
+        const filtered = products.filter((product) => {
+          const searchLower = searchTerm.toLowerCase();
+          return (
+            product.name.toLowerCase().includes(searchLower) ||
+            product.id.toLowerCase().includes(searchLower) ||
+            product.sellerName.toLowerCase().includes(searchLower) ||
+            product.sellerEmail.toLowerCase().includes(searchLower)
+          );
+        });
+        setFilteredProducts(filtered);
+      } else if (activeTab === "transactions") {
+        const filtered = transactions.filter((transaction) => {
+          const searchLower = searchTerm.toLowerCase();
+          return (
+            transaction.id.toLowerCase().includes(searchLower) ||
+            transaction.customerName.toLowerCase().includes(searchLower) ||
+            transaction.customerEmail.toLowerCase().includes(searchLower) ||
+            transaction.status.toLowerCase().includes(searchLower) ||
+            transaction.paymentIntentId.toLowerCase().includes(searchLower)
+          );
+        });
+        setFilteredTransactions(filtered);
+      } else if (activeTab === "categories") {
+        const filtered = categories.filter((category) => {
+          const searchLower = searchTerm.toLowerCase();
+          return (
+            category.name.toLowerCase().includes(searchLower) ||
+            category.description.toLowerCase().includes(searchLower) ||
+            category.id.toLowerCase().includes(searchLower)
+          );
+        });
+        setFilteredCategories(filtered);
+      }
     }
-
-    if (activeTab === "products") {
-      const filtered = products.filter((product) => {
-        const searchLower = searchTerm.toLowerCase();
-        return (
-          product.name.toLowerCase().includes(searchLower) ||
-          product.id.toLowerCase().includes(searchLower) ||
-          product.sellerName.toLowerCase().includes(searchLower) ||
-          product.sellerEmail.toLowerCase().includes(searchLower)
-        );
-      });
-      setFilteredProducts(filtered);
-    } else if (activeTab === "users") {
-      const filtered = users.filter((user) => {
-        const searchLower = searchTerm.toLowerCase();
-        return (
-          user.name.toLowerCase().includes(searchLower) ||
-          user.email.toLowerCase().includes(searchLower) ||
-          user.role.toLowerCase().includes(searchLower)
-        );
-      });
-      setFilteredUsers(filtered);
-    } else if (activeTab === "transactions") {
-      const filtered = transactions.filter((transaction) => {
-        const searchLower = searchTerm.toLowerCase();
-        return (
-          transaction.id.toLowerCase().includes(searchLower) ||
-          transaction.customerName.toLowerCase().includes(searchLower) ||
-          transaction.customerEmail.toLowerCase().includes(searchLower) ||
-          transaction.status.toLowerCase().includes(searchLower) ||
-          transaction.paymentIntentId.toLowerCase().includes(searchLower)
-        );
-      });
-      setFilteredTransactions(filtered);
-    } else if (activeTab === "categories") {
-      const filtered = categories.filter((category) => {
-        const searchLower = searchTerm.toLowerCase();
-        return (
-          category.name.toLowerCase().includes(searchLower) ||
-          category.description.toLowerCase().includes(searchLower) ||
-          category.id.toLowerCase().includes(searchLower)
-        );
-      });
-      setFilteredCategories(filtered);
-    }
-  }, [searchTerm, products, users, transactions, categories, activeTab]);
+  }, [searchTerm, roleFilter, products, users, transactions, categories, activeTab]);
 
   const approveSeller = async (userId: string) => {
     try {
@@ -466,6 +476,7 @@ const AdminDashboard: React.FC = () => {
                 onClick={() => {
                   setActiveTab("overview");
                   setSearchTerm("");
+                  setRoleFilter("all");
                 }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "overview"
@@ -479,6 +490,7 @@ const AdminDashboard: React.FC = () => {
                 onClick={() => {
                   setActiveTab("users");
                   setSearchTerm("");
+                  setRoleFilter("all");
                 }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "users"
@@ -498,6 +510,7 @@ const AdminDashboard: React.FC = () => {
                 onClick={() => {
                   setActiveTab("products");
                   setSearchTerm("");
+                  setRoleFilter("all");
                 }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "products"
@@ -511,6 +524,7 @@ const AdminDashboard: React.FC = () => {
                 onClick={() => {
                   setActiveTab("transactions");
                   setSearchTerm("");
+                  setRoleFilter("all");
                 }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "transactions"
@@ -524,6 +538,7 @@ const AdminDashboard: React.FC = () => {
                 onClick={() => {
                   setActiveTab("categories");
                   setSearchTerm("");
+                  setRoleFilter("all");
                 }}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === "categories"
@@ -731,28 +746,57 @@ const AdminDashboard: React.FC = () => {
                 <h2 className="text-xl font-semibold text-gray-900 mb-4 sm:mb-0">
                   User Management
                 </h2>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search by user name, email, or role..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full sm:w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg
-                      className="h-5 w-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                  <div className="relative">
+                    <select
+                      value={roleFilter}
+                      onChange={(e) => setRoleFilter(e.target.value)}
+                      className="w-full sm:w-48 pl-3 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
+                      <option value="all">All Roles</option>
+                      <option value="admin">Admin</option>
+                      <option value="customer">Customer</option>
+                      <option value="seller">Seller</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <svg
+                        className="h-5 w-5 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search by user name, email, or role..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full sm:w-80 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg
+                        className="h-5 w-5 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -762,18 +806,26 @@ const AdminDashboard: React.FC = () => {
               <div className="flex items-center justify-between">
                 <p className="text-sm text-gray-600">
                   {filteredUsers.length} of {users.length} users
+                  {roleFilter !== "all" && (
+                    <span className="ml-2 text-blue-600">
+                      (Role: {roleFilter.charAt(0).toUpperCase() + roleFilter.slice(1)})
+                    </span>
+                  )}
                   {searchTerm && (
                     <span className="ml-2 text-blue-600">
                       matching "{searchTerm}"
                     </span>
                   )}
                 </p>
-                {searchTerm && (
+                {(searchTerm || roleFilter !== "all") && (
                   <button
-                    onClick={() => setSearchTerm("")}
+                    onClick={() => {
+                      setSearchTerm("");
+                      setRoleFilter("all");
+                    }}
                     className="text-sm text-gray-500 hover:text-gray-700 underline"
                   >
-                    Clear search
+                    Clear filters
                   </button>
                 )}
               </div>

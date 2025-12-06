@@ -16,6 +16,7 @@ import axios from "axios";
 import { API_ENDPOINTS } from "../config/api";
 import ReviewForm from "../components/ReviewForm";
 import ReviewList from "../components/ReviewList";
+import FavoriteButton from "../components/FavoriteButton";
 import { scrollToTop } from "../utils/helper";
 
 interface Product {
@@ -194,12 +195,15 @@ const ProductDetailPage: React.FC = () => {
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6">
             {/* Product Image */}
-            <div className="aspect-square rounded-lg overflow-hidden">
+            <div className="aspect-square rounded-lg overflow-hidden relative">
               <img
                 src={product.images[0] || "/placeholder-image.png"}
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
+              <div className="absolute top-4 right-4">
+                <FavoriteButton productId={product.id} size="lg" />
+              </div>
             </div>
 
             {/* Product Details */}

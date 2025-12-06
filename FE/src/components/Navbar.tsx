@@ -200,9 +200,12 @@ const Navbar: React.FC = () => {
                 </button>
 
                 {/* Wishlist */}
-                <button className="p-3 text-gray-700 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-300 group flex-shrink-0">
+                <Link
+                  to="/favorites"
+                  className="p-3 text-gray-700 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-300 group flex-shrink-0"
+                >
                   <Heart className="h-5 w-5 group-hover:scale-110 transition-transform" />
-                </button>
+                </Link>
               </>
             ) : null}
 
@@ -380,9 +383,13 @@ const Navbar: React.FC = () => {
                     Dashboard
                   </Link>
 
-                  <button className="w-full text-left px-4 py-3 text-gray-700 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-300">
+                  <Link
+                    to="/favorites"
+                    className="block w-full text-left px-4 py-3 text-gray-700 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-300"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
                     Wishlist
-                  </button>
+                  </Link>
 
                   <button className="w-full text-left px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-300">
                     Notifications

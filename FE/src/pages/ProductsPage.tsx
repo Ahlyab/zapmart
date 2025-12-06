@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Search, Filter, Star } from "lucide-react";
 import axios from "axios";
 import { API_ENDPOINTS } from "../config/api";
+import FavoriteButton from "../components/FavoriteButton";
 
 interface Product {
   id: string;
@@ -310,13 +311,18 @@ const ProductsPage: React.FC = () => {
             {filteredProducts.map((product) => (
               <div
                 key={product.id}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all transform hover:scale-105"
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-all transform hover:scale-105 relative"
               >
-                <img
-                  src={product.images[0] || "/placeholder-image.png"}
-                  alt={product.name}
-                  className="w-full h-48 object-cover"
-                />
+                <div className="relative">
+                  <img
+                    src={product.images[0] || "/placeholder-image.png"}
+                    alt={product.name}
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="absolute top-3 right-3">
+                    <FavoriteButton productId={product.id} />
+                  </div>
+                </div>
                 <div className="p-4">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-1">
                     {product.name}

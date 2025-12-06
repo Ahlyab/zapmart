@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { API_ENDPOINTS } from "../config/api";
+import FavoriteButton from "../components/FavoriteButton";
 
 interface Product {
   id: string;
@@ -375,9 +376,7 @@ const HomePage: React.FC = () => {
                       className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                     <div className="absolute top-3 right-3">
-                      <button className="bg-white/90 hover:bg-white p-2 rounded-full transition-colors">
-                        <Heart className="h-5 w-5 text-gray-600 hover:text-red-500" />
-                      </button>
+                      <FavoriteButton productId={product.id} />
                     </div>
                     <div className="absolute top-3 left-3">
                       <button className="bg-white/90 hover:bg-white p-2 rounded-full transition-colors">
@@ -600,7 +599,7 @@ const HomePage: React.FC = () => {
                 >
                   {selectedFeature.icon}
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className="text-2xl font-bold text-gray-900 italic">
                   {selectedFeature.title}
                 </h2>
               </div>
@@ -613,7 +612,7 @@ const HomePage: React.FC = () => {
               </button>
             </div>
             <div className="p-6">
-              <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-line">
+              <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-line italic">
                 {selectedFeature.content}
               </p>
             </div>
