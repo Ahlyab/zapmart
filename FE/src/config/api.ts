@@ -8,6 +8,9 @@ export const API_ENDPOINTS = {
   REGISTER: `${API_BASE_URL}/api/auth/register`,
   PROFILE: `${API_BASE_URL}/api/auth/profile`,
   GUEST_AUTH: `${API_BASE_URL}/api/auth/guest`,
+  FORGOT_PASSWORD: `${API_BASE_URL}/api/auth/forgot-password`,
+  VERIFY_OTP: `${API_BASE_URL}/api/auth/verify-otp`,
+  RESET_PASSWORD: `${API_BASE_URL}/api/auth/reset-password`,
   
   // Products
   PRODUCTS: `${API_BASE_URL}/api/products`,

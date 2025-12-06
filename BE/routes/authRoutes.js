@@ -9,6 +9,10 @@ router.post('/register', authController.register);
 router.post('/login', authController.login);
 // Guest checkout - create/get guest account and return token (unprotected)
 router.post('/guest', authController.createGuestAccount);
+// Password reset routes
+router.post('/forgot-password', authController.requestPasswordReset);
+router.post('/verify-otp', authController.verifyPasswordResetOTP);
+router.post('/reset-password', authController.resetPassword);
 
 // Protected routes
 router.get('/profile', authenticateToken, authController.getProfile);
