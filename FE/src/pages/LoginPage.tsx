@@ -106,6 +106,15 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
 
+            <div className="flex items-center justify-between">
+              <Link
+                to="/reset-password"
+                className="text-sm text-blue-600 hover:text-blue-500 transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
             <div>
               <button
                 type="submit"
