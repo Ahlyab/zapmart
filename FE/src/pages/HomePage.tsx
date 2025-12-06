@@ -26,8 +26,14 @@ interface Product {
   description: string;
 }
 
+interface Category {
+  id: string;
+  name: string;
+}
+
 const HomePage: React.FC = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState<{
@@ -38,28 +44,42 @@ const HomePage: React.FC = () => {
   } | null>(null);
 
   useEffect(() => {
-    const fetchFeaturedProducts = async () => {
+    const fetchData = async () => {
       try {
-        const response = await axios.get(API_ENDPOINTS.PRODUCTS);
-        setFeaturedProducts(response.data.slice(0, 8));
+        const [productsResponse, categoriesResponse] = await Promise.all([
+          axios.get(API_ENDPOINTS.PRODUCTS),
+          axios.get(API_ENDPOINTS.CATEGORIES),
+        ]);
+        setFeaturedProducts(productsResponse.data.slice(0, 8));
+        setCategories(categoriesResponse.data);
         setIsLoading(false);
       } catch (error) {
-        console.error("Error fetching products:", error);
+        console.error("Error fetching data:", error);
         setIsLoading(false);
       }
     };
 
-    fetchFeaturedProducts();
+    fetchData();
   }, []);
 
-  const categories = [
-    { name: "Electronics", icon: "📱", color: "from-blue-500 to-purple-600" },
-    { name: "Fashion", icon: "👗", color: "from-pink-500 to-red-500" },
-    { name: "Home & Garden", icon: "🏠", color: "from-green-500 to-teal-500" },
-    { name: "Sports", icon: "⚽", color: "from-orange-500 to-yellow-500" },
-    { name: "Books", icon: "📚", color: "from-indigo-500 to-blue-600" },
-    { name: "Beauty", icon: "💄", color: "from-rose-500 to-pink-500" },
-  ];
+  // Map category names to icons and colors
+  const getCategoryDisplay = (categoryName: string) => {
+    const displayMap: Record<string, { icon: string; color: string }> = {
+      Electronics: { icon: "📱", color: "from-blue-500 to-purple-600" },
+      Clothing: { icon: "👗", color: "from-pink-500 to-red-500" },
+      Fashion: { icon: "👗", color: "from-pink-500 to-red-500" },
+      "Home & Garden": { icon: "🏠", color: "from-green-500 to-teal-500" },
+      Sports: { icon: "⚽", color: "from-orange-500 to-yellow-500" },
+      Books: { icon: "📚", color: "from-indigo-500 to-blue-600" },
+      Beauty: { icon: "💄", color: "from-rose-500 to-pink-500" },
+    };
+    return (
+      displayMap[categoryName] || {
+        icon: "🛍️",
+        color: "from-gray-500 to-gray-600",
+      }
+    );
+  };
 
   const features = [
     {
@@ -184,16 +204,19 @@ const HomePage: React.FC = () => {
               categories.
             </p>
             <div className="flex flex-wrap gap-3 mb-8">
-              {categories.slice(0, 4).map((category, index) => (
-                <Link
-                  key={index}
-                  to="/products"
-                  className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 flex items-center hover:bg-white/30 transition-colors cursor-pointer"
-                >
-                  <span className="text-lg mr-2">{category.icon}</span>
-                  <span className="text-sm font-medium">{category.name}</span>
-                </Link>
-              ))}
+              {categories.slice(0, 4).map((category) => {
+                const display = getCategoryDisplay(category.name);
+                return (
+                  <Link
+                    key={category.id}
+                    to={`/products?category=${encodeURIComponent(category.name)}`}
+                    className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 flex items-center hover:bg-white/30 transition-colors cursor-pointer"
+                  >
+                    <span className="text-lg mr-2">{display.icon}</span>
+                    <span className="text-sm font-medium">{category.name}</span>
+                  </Link>
+                );
+              })}
             </div>
             <Link
               to="/products"
@@ -287,22 +310,25 @@ const HomePage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {categories.map((category, index) => (
-              <Link
-                key={index}
-                to="/products"
-                className="group bg-white rounded-2xl p-6 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
-              >
-                <div
-                  className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${category.color} flex items-center justify-center text-3xl group-hover:scale-110 transition-transform`}
+            {categories.map((category) => {
+              const display = getCategoryDisplay(category.name);
+              return (
+                <Link
+                  key={category.id}
+                  to={`/products?category=${encodeURIComponent(category.name)}`}
+                  className="group bg-white rounded-2xl p-6 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2"
                 >
-                  {category.icon}
-                </div>
-                <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                  {category.name}
-                </h3>
-              </Link>
-            ))}
+                  <div
+                    className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${display.color} flex items-center justify-center text-3xl group-hover:scale-110 transition-transform`}
+                  >
+                    {display.icon}
+                  </div>
+                  <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                    {category.name}
+                  </h3>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>

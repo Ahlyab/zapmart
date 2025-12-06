@@ -159,8 +159,8 @@ const AdminDashboard: React.FC = () => {
           axios.get(API_ENDPOINTS.ADMIN_STATS),
           axios.get(API_ENDPOINTS.ADMIN_USERS),
           axios.get(API_ENDPOINTS.ADMIN_PRODUCTS),
-          axios.get(`${API_ENDPOINTS.ADMIN_STATS}/transactions`),
-          axios.get(`${API_ENDPOINTS.ADMIN_STATS}/categories`),
+          axios.get(API_ENDPOINTS.ADMIN_TRANSACTIONS),
+          axios.get(API_ENDPOINTS.ADMIN_CATEGORIES),
         ]);
 
         console.log("user response = ", usersResponse);
@@ -386,7 +386,7 @@ const AdminDashboard: React.FC = () => {
       if (editingCategory) {
         // Update existing category
         const response = await axios.put(
-          `${API_ENDPOINTS.ADMIN_STATS}/categories/${editingCategory.id}`,
+          `${API_ENDPOINTS.ADMIN_CATEGORIES}/${editingCategory.id}`,
           categoryForm
         );
         setCategories(
@@ -402,7 +402,7 @@ const AdminDashboard: React.FC = () => {
       } else {
         // Create new category
         const response = await axios.post(
-          `${API_ENDPOINTS.ADMIN_STATS}/categories`,
+          API_ENDPOINTS.ADMIN_CATEGORIES,
           categoryForm
         );
         setCategories([...categories, response.data]);
@@ -424,7 +424,7 @@ const AdminDashboard: React.FC = () => {
     if (window.confirm("Are you sure you want to delete this category?")) {
       try {
         await axios.delete(
-          `${API_ENDPOINTS.ADMIN_STATS}/categories/${categoryId}`
+          `${API_ENDPOINTS.ADMIN_CATEGORIES}/${categoryId}`
         );
         setCategories(categories.filter((cat) => cat.id !== categoryId));
         setFilteredCategories(

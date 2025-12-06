@@ -42,13 +42,6 @@ const ProductsPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<string>("name");
   const [loading, setLoading] = useState(true);
 
-  // Get search term from URL params
-  useEffect(() => {
-    const urlSearchTerm = searchParams.get("search");
-    if (urlSearchTerm) {
-      setSearchTerm(urlSearchTerm);
-    }
-  }, [searchParams]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,7 +53,53 @@ const ProductsPage: React.FC = () => {
 
         setProducts(productsResponse.data);
         setCategories(categoriesResponse.data);
-        setFilteredProducts(productsResponse.data);
+
+        // Get initial filters from URL params
+        const urlCategoryName = searchParams.get("category");
+        const urlSearchTerm = searchParams.get("search");
+        
+        // Set search term if present
+        if (urlSearchTerm) {
+          setSearchTerm(urlSearchTerm);
+        }
+
+        // Set category from URL params and apply filter immediately
+        let initialCategoryId = "";
+        if (urlCategoryName && categoriesResponse.data.length > 0) {
+          const matchedCategory = categoriesResponse.data.find(
+            (cat: Category) => cat.name.toLowerCase() === urlCategoryName.toLowerCase()
+          );
+          if (matchedCategory) {
+            initialCategoryId = matchedCategory.id;
+            setSelectedCategory(matchedCategory.id);
+          }
+        }
+
+        // Apply initial filtering immediately to prevent flickering
+        let filtered = [...productsResponse.data];
+        
+        // Filter by category if one was found in URL
+        if (initialCategoryId) {
+          filtered = filtered.filter(
+            (product) => product.category._id === initialCategoryId
+          );
+        }
+
+        // Filter by search term if present
+        if (urlSearchTerm) {
+          filtered = filtered.filter(
+            (product) =>
+              product.name.toLowerCase().includes(urlSearchTerm.toLowerCase()) ||
+              product.description.toLowerCase().includes(urlSearchTerm.toLowerCase())
+          );
+        }
+
+        // Sort products
+        filtered.sort((a, b) => {
+          return a.name.localeCompare(b.name);
+        });
+
+        setFilteredProducts(filtered);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -70,6 +109,32 @@ const ProductsPage: React.FC = () => {
 
     fetchData();
   }, []);
+
+  // Handle URL param changes for navigation (after initial load)
+  useEffect(() => {
+    if (categories.length > 0 && products.length > 0 && !loading) {
+      const urlCategoryName = searchParams.get("category");
+      const urlSearchTerm = searchParams.get("search");
+      
+      // Update search term if changed in URL
+      if (urlSearchTerm !== searchTerm) {
+        setSearchTerm(urlSearchTerm || "");
+      }
+      
+      // Update category if changed in URL
+      if (urlCategoryName) {
+        const matchedCategory = categories.find(
+          (cat) => cat.name.toLowerCase() === urlCategoryName.toLowerCase()
+        );
+        if (matchedCategory && selectedCategory !== matchedCategory.id) {
+          setSelectedCategory(matchedCategory.id);
+        }
+      } else if (selectedCategory && !urlCategoryName) {
+        // Clear category if URL param is removed
+        setSelectedCategory("");
+      }
+    }
+  }, [searchParams, categories.length, products.length, loading]);
 
   // Update URL when search term changes
   const handleSearchChange = (value: string) => {
@@ -86,10 +151,6 @@ const ProductsPage: React.FC = () => {
 
     // Filter by category
     if (selectedCategory) {
-      console.log("selectedCategory", selectedCategory);
-
-      console.log("filtered", filtered);
-      console.log(filtered);
       filtered = filtered.filter(
         (product) => product.category._id === selectedCategory
       );
@@ -137,7 +198,11 @@ const ProductsPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            {searchTerm ? `Search Results for "${searchTerm}"` : "All Products"}
+            {searchTerm
+              ? `Search Results for "${searchTerm}"`
+              : selectedCategory
+              ? categories.find((cat) => cat.id === selectedCategory)?.name || "All Products"
+              : "All Products"}
           </h1>
 
           {/* Search and Filter Bar */}
@@ -160,7 +225,20 @@ const ProductsPage: React.FC = () => {
                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <select
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedCategory(e.target.value);
+                    // Update URL params when category changes
+                    const params = new URLSearchParams(searchParams);
+                    if (e.target.value) {
+                      const selectedCat = categories.find(cat => cat.id === e.target.value);
+                      if (selectedCat) {
+                        params.set("category", selectedCat.name);
+                      }
+                    } else {
+                      params.delete("category");
+                    }
+                    setSearchParams(params);
+                  }}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
                 >
                   <option value="">All Categories</option>

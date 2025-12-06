@@ -25,6 +25,8 @@ export const API_ENDPOINTS = {
   ADMIN_USERS: `${API_BASE_URL}/api/admin/users`,
   ADMIN_PRODUCTS: `${API_BASE_URL}/api/admin/products`,
   ADMIN_ORDERS: `${API_BASE_URL}/api/admin/orders`,
+  ADMIN_TRANSACTIONS: `${API_BASE_URL}/api/admin/transactions`,
+  ADMIN_CATEGORIES: `${API_BASE_URL}/api/admin/categories`,
   
   // Seller
   SELLER_PRODUCTS: `${API_BASE_URL}/api/seller/products`,
