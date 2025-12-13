@@ -9,10 +9,12 @@ import {
   Edit,
   Trash2,
   ShoppingBag,
+  X,
 } from "lucide-react";
 import axios from "axios";
 import { API_ENDPOINTS } from "../config/api";
 import SellerOrdersManager from "../components/SellerOrdersManager";
+import MarkdownEditor from "../components/MarkdownEditor";
 
 interface Product {
   id: string;
@@ -26,6 +28,7 @@ interface Product {
   colors?: string[];
   sizes?: string[];
   affiliatedLink?: string;
+  markdown?: string;
   isActive: boolean;
   createdAt: string;
 }
@@ -88,6 +91,7 @@ const SellerDashboard: React.FC = () => {
     affiliatedLink: "",
     colors: "",
     sizes: [] as string[],
+    markdown: "",
   });
 
   const [files, setFiles] = useState({
@@ -97,6 +101,8 @@ const SellerDashboard: React.FC = () => {
   const [previewUrls, setPreviewUrls] = useState({
     images: [] as string[],
   });
+
+  const [existingImages, setExistingImages] = useState<string[]>([]);
 
   // 1. Add order management tab UI control
   const [activeTab, setActiveTab] = useState<"dashboard" | "orders">(
@@ -145,12 +151,17 @@ const SellerDashboard: React.FC = () => {
     const newFiles = selectedFiles.slice(0, 10); // Limit to 10 files
     setFiles((prev) => ({ ...prev, images: newFiles }));
     const urls = newFiles.map((file) => URL.createObjectURL(file));
-    setPreviewUrls((prev) => ({ ...prev, images: urls }));
+    // Combine existing images with new preview URLs
+    setPreviewUrls((prev) => ({ 
+      ...prev, 
+      images: [...existingImages, ...urls] 
+    }));
   };
 
   const clearFiles = () => {
     setFiles({ images: [] });
     setPreviewUrls({ images: [] });
+    setExistingImages([]);
   };
 
   const resetForm = () => {
@@ -164,6 +175,7 @@ const SellerDashboard: React.FC = () => {
       affiliatedLink: "",
       colors: "",
       sizes: [],
+      markdown: "",
     });
     clearFiles();
     setFormMessage(null);
@@ -200,7 +212,12 @@ const SellerDashboard: React.FC = () => {
         }
       });
 
-      // Add files
+      // Add existing images (for updates)
+      if (editingProduct && existingImages.length > 0) {
+        formData.append("existingImages", JSON.stringify(existingImages));
+      }
+
+      // Add new files
       files.images.forEach((file) => {
         formData.append("images", file);
       });
@@ -264,10 +281,14 @@ const SellerDashboard: React.FC = () => {
       affiliatedLink: product.affiliatedLink || "",
       colors: product.colors ? product.colors.join(", ") : "",
       sizes: product.sizes || [],
+      markdown: product.markdown || "",
     });
+    // Store existing images separately
+    setExistingImages(product.images || []);
     setPreviewUrls({
-      images: product.images,
+      images: product.images || [],
     });
+    setFiles({ images: [] }); // Clear new files
     setShowAddProduct(true);
   };
 
@@ -555,6 +576,25 @@ const SellerDashboard: React.FC = () => {
                     />
                   </div>
 
+                  <div className="space-y-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      📄 Markdown Content (Optional)
+                    </label>
+                    <MarkdownEditor
+                      value={productForm.markdown}
+                      onChange={(value) =>
+                        setProductForm({
+                          ...productForm,
+                          markdown: value,
+                        })
+                      }
+                      placeholder="Add detailed markdown content about your product..."
+                    />
+                    <p className="text-xs text-gray-500">
+                      💡 Use markdown to create rich, formatted content with headings, lists, links, and more.
+                    </p>
+                  </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -709,22 +749,71 @@ const SellerDashboard: React.FC = () => {
                       <div className="mt-4">
                         <p className="text-sm font-medium text-gray-700 mb-3">
                           Preview ({previewUrls.images.length} images):
+                          {editingProduct && existingImages.length > 0 && (
+                            <span className="text-xs text-gray-500 ml-2">
+                              ({existingImages.length} existing, {files.images.length} new)
+                            </span>
+                          )}
                         </p>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                          {previewUrls.images.map((url, index) => (
-                            <div key={index} className="relative group">
-                              <img
-                                src={url}
-                                alt={`Product ${index + 1}`}
-                                className="w-full h-24 object-cover rounded-lg border-2 border-gray-200 group-hover:border-blue-500 transition-all duration-200"
-                              />
-                              <div className="absolute top-1 right-1 bg-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span className="text-xs text-gray-600 font-medium">
-                                  {index + 1}
-                                </span>
+                          {previewUrls.images.map((url, index) => {
+                            const isExisting = index < existingImages.length;
+                            return (
+                              <div key={index} className="relative group">
+                                <img
+                                  src={url}
+                                  alt={`Product ${index + 1}`}
+                                  className="w-full h-24 object-cover rounded-lg border-2 border-gray-200 group-hover:border-blue-500 transition-all duration-200"
+                                />
+                                <div className="absolute top-1 right-1 bg-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <span className="text-xs text-gray-600 font-medium">
+                                    {index + 1}
+                                  </span>
+                                </div>
+                                {isExisting && (
+                                  <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded">
+                                    Existing
+                                  </div>
+                                )}
+                                {editingProduct && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (isExisting) {
+                                        // Remove from existing images
+                                        const newExisting = existingImages.filter((_, i) => i !== index);
+                                        setExistingImages(newExisting);
+                                        // Keep new file previews
+                                        const newFileUrls = files.images.map((file) => URL.createObjectURL(file));
+                                        setPreviewUrls({
+                                          images: [...newExisting, ...newFileUrls],
+                                        });
+                                      } else {
+                                        // Remove from new files
+                                        const fileIndex = index - existingImages.length;
+                                        const newFiles = files.images.filter((_, i) => i !== fileIndex);
+                                        setFiles({ images: newFiles });
+                                        // Revoke old blob URLs and create new ones
+                                        previewUrls.images.slice(existingImages.length).forEach((url, i) => {
+                                          if (i !== fileIndex && url.startsWith('blob:')) {
+                                            URL.revokeObjectURL(url);
+                                          }
+                                        });
+                                        const newUrls = newFiles.map((file) => URL.createObjectURL(file));
+                                        setPreviewUrls({
+                                          images: [...existingImages, ...newUrls],
+                                        });
+                                      }
+                                    }}
+                                    className="absolute bottom-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                    title="Remove image"
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                )}
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}

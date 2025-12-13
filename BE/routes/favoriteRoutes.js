@@ -21,3 +21,5 @@ router.get("/check/:productId", favoriteController.checkFavorite);
 
 export default router;
 
+
+

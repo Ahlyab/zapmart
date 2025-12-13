@@ -66,35 +66,69 @@ export const updateProduct = async (req, res) => {
     const { images } = req.files || {};
     let updateData = { ...req.body };
 
-    // Handle images update
-    if (images && images.length > 0) {
-      const imagesToUpload = images.slice(0, 10); // Limit to 10 images
-      updateData.images = await uploadMultipleImages(imagesToUpload);
+    // Parse existingImages safely
+    let existingImages = [];
+    if (req.body.existingImages !== undefined) {
+      try {
+        existingImages = JSON.parse(req.body.existingImages);
+        if (!Array.isArray(existingImages)) existingImages = [];
+      } catch {
+        existingImages = [];
+      }
     }
 
-    // Parse numeric fields
+    // Upload new images (if any)
+    let newImageUrls = [];
+    if (images && images.length > 0) {
+      const imagesToUpload = images.slice(0, 10);
+      newImageUrls = await uploadMultipleImages(imagesToUpload);
+    }
+
+    // 🔒 Enforce at least one image
+    const totalImages = existingImages.length + newImageUrls.length;
+    if (totalImages === 0) {
+      return res.status(400).json({
+        message: "At least one product image is required.",
+      });
+    }
+
+    // ✅ Final image set (authoritative)
+    updateData.images = [...existingImages, ...newImageUrls];
+
+    // ---- Parse numeric / structured fields ----
     if (updateData.price) updateData.price = parseFloat(updateData.price);
     if (updateData.weight) updateData.weight = parseFloat(updateData.weight);
+
     if (updateData.colors) {
       updateData.colors = updateData.colors
         .split(",")
-        .map((color) => color.trim());
+        .map(c => c.trim())
+        .filter(Boolean);
     } else {
       updateData.colors = [];
     }
-    if (updateData.sizes) updateData.sizes = JSON.parse(updateData.sizes);
+
+    if (updateData.sizes) {
+      try {
+        updateData.sizes = JSON.parse(updateData.sizes);
+      } catch {
+        updateData.sizes = [];
+      }
+    }
 
     const product = await productService.updateProduct(
       req.params.id,
       updateData,
       req.user._id
     );
+
     res.json(product);
   } catch (error) {
     console.error("Error updating product:", error);
     res.status(400).json({ message: error.message });
   }
 };
+
 
 export const deleteProduct = async (req, res) => {
   try {

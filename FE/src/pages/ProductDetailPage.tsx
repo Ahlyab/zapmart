@@ -18,6 +18,7 @@ import ReviewForm from "../components/ReviewForm";
 import ReviewList from "../components/ReviewList";
 import FavoriteButton from "../components/FavoriteButton";
 import { scrollToTop } from "../utils/helper";
+import ReactMarkdown from "react-markdown";
 
 interface Product {
   id: string;
@@ -29,6 +30,7 @@ interface Product {
   weight: number;
   dimensions: string;
   categoryId: string;
+  markdown?: string;
   reviewStats?: {
     totalReviews: number;
     averageRating: number;
@@ -59,11 +61,13 @@ const ProductDetailPage: React.FC = () => {
     | undefined
   >(undefined);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const fetchProduct = async () => {
     try {
       const response = await axios.get(`${API_ENDPOINTS.PRODUCTS}/${id}`);
       setProduct(response.data);
+      setSelectedImageIndex(0); // Reset to first image when product changes
 
       // Check if user has already reviewed this product
       if (user) {
@@ -194,16 +198,45 @@ const ProductDetailPage: React.FC = () => {
 
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-6">
-            {/* Product Image */}
-            <div className="aspect-square rounded-lg overflow-hidden relative">
-              <img
-                src={product.images[0] || "/placeholder-image.png"}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute top-4 right-4">
-                <FavoriteButton productId={product.id} size="lg" />
+            {/* Product Image Gallery */}
+            <div className="space-y-4">
+              {/* Main Image */}
+              <div className="aspect-square rounded-lg overflow-hidden relative bg-gray-100">
+                <img
+                  src={
+                    product.images[selectedImageIndex] ||
+                    "/placeholder-image.png"
+                  }
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-4 right-4">
+                  <FavoriteButton productId={product.id} size="lg" />
+                </div>
               </div>
+
+              {/* Thumbnail Images */}
+              {product.images.length > 1 && (
+                <div className="grid grid-cols-4 gap-2">
+                  {product.images.map((image, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedImageIndex(index)}
+                      className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                        selectedImageIndex === index
+                          ? "border-blue-600 ring-2 ring-blue-200"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <img
+                        src={image}
+                        alt={`${product.name} - View ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Product Details */}
@@ -327,6 +360,82 @@ const ProductDetailPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Markdown Content Section - Above Reviews */}
+        {product.markdown && (
+          <div className="mt-12 bg-white rounded-lg shadow-lg p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Product Details
+            </h2>
+            <div className="text-gray-600 leading-relaxed">
+              <ReactMarkdown
+                components={{
+                  h1: ({ children }) => (
+                    <h1 className="text-2xl font-bold mb-4 mt-6 text-gray-900">
+                      {children}
+                    </h1>
+                  ),
+                  h2: ({ children }) => (
+                    <h2 className="text-xl font-bold mb-3 mt-5 text-gray-900">
+                      {children}
+                    </h2>
+                  ),
+                  h3: ({ children }) => (
+                    <h3 className="text-lg font-semibold mb-2 mt-4 text-gray-900">
+                      {children}
+                    </h3>
+                  ),
+                  p: ({ children }) => (
+                    <p className="mb-3 leading-relaxed">{children}</p>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="list-disc list-inside mb-3 space-y-1">
+                      {children}
+                    </ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="list-decimal list-inside mb-3 space-y-1">
+                      {children}
+                    </ol>
+                  ),
+                  li: ({ children }) => (
+                    <li className="ml-2">{children}</li>
+                  ),
+                  strong: ({ children }) => (
+                    <strong className="font-bold text-gray-900">
+                      {children}
+                    </strong>
+                  ),
+                  em: ({ children }) => (
+                    <em className="italic">{children}</em>
+                  ),
+                  a: ({ href, children }) => (
+                    <a
+                      href={href}
+                      className="text-blue-600 hover:underline"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {children}
+                    </a>
+                  ),
+                  code: ({ children }) => (
+                    <code className="bg-gray-100 px-1 py-0.5 rounded text-sm font-mono">
+                      {children}
+                    </code>
+                  ),
+                  pre: ({ children }) => (
+                    <pre className="bg-gray-100 p-3 rounded mb-3 overflow-x-auto">
+                      {children}
+                    </pre>
+                  ),
+                }}
+              >
+                {product.markdown}
+              </ReactMarkdown>
+            </div>
+          </div>
+        )}
 
         {/* Reviews Section */}
         <div className="mt-12">
